@@ -149,18 +149,20 @@ namespace SimpleCore.Extensions
         /// <returns></returns>
         public static string GetFullNameWithSceneName(this Transform transform)
         {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.Append(transform.gameObject.name);
+            const char SEPARATE = '/'; //名称之间的分隔符号
 
-            while (transform.parent)
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append(transform.name); // 添加当前节点的名称
+
+            while (transform.parent) //一层层添加父节点的名称
             {
                 transform = transform.parent;
-                stringBuilder.Insert(0, '/');
-                stringBuilder.Insert(0, transform.gameObject.name);
+                stringBuilder.Insert(0, SEPARATE);
+                stringBuilder.Insert(0, transform.name);
             }
 
-            stringBuilder.Insert(0, '/');
-            stringBuilder.Insert(0, transform.gameObject.scene.name);
+            stringBuilder.Insert(0, SEPARATE);
+            stringBuilder.Insert(0, transform.gameObject.scene.name); //添加场景名称
             return stringBuilder.ToString();
         }
 
@@ -171,14 +173,16 @@ namespace SimpleCore.Extensions
         /// <returns></returns>
         public static string GetFullName(this Transform transform)
         {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.Append(transform.gameObject.name);
+            const char SEPARATE = '/'; //名称之间的分隔符号
 
-            while (transform.parent)
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append(transform.name); // 添加当前节点的名称
+
+            while (transform.parent) //一层层添加父节点的名称
             {
                 transform = transform.parent;
-                stringBuilder.Insert(0, '/');
-                stringBuilder.Insert(0, transform.gameObject.name);
+                stringBuilder.Insert(0, SEPARATE);
+                stringBuilder.Insert(0, transform.name);
             }
 
             return stringBuilder.ToString();
