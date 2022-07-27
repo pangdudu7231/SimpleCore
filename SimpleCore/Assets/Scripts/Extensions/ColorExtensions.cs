@@ -11,7 +11,7 @@ namespace SimpleCore.Extensions
         #region public static functions
 
         /// <summary>
-        ///     向Color中的参数赋值。
+        ///     设置 Color 中的值，并返回一个新的 Color 结构体。
         /// </summary>
         /// <param name="color"></param>
         /// <param name="r"></param>
@@ -29,7 +29,7 @@ namespace SimpleCore.Extensions
         }
 
         /// <summary>
-        ///     向Color32中的参数赋值。
+        ///     设置 Color32 中的值，并返回一个新的 Color32 结构体。
         /// </summary>
         /// <param name="color32"></param>
         /// <param name="r"></param>
@@ -51,7 +51,7 @@ namespace SimpleCore.Extensions
         #region private static internal function
 
         /// <summary>
-        ///     向Color中的参数赋值。
+        ///     设置 Color 中的值，并返回一个新的 Color 结构体。
         /// </summary>
         /// <param name="color"></param>
         /// <param name="r"></param>
@@ -70,7 +70,7 @@ namespace SimpleCore.Extensions
         }
 
         /// <summary>
-        ///     向Color32中的参数赋值。
+        ///     设置 Color32 中的值，并返回一个新的 Color32 结构体。
         /// </summary>
         /// <param name="color32"></param>
         /// <param name="r"></param>
