@@ -5,21 +5,21 @@ using UnityEngine;
 namespace SimpleCore.ShapeMeshes
 {
     /// <summary>
-    /// 立方体图形 mesh类。
+    ///     立方体图形 mesh类。
     /// </summary>
     public sealed class BoxShapeMesh : BaseShapeMesh
     {
         #region private members
 
-        private readonly float _xSize, _ySize, _zSize;//图形在X轴、Y轴和Z轴方向的尺寸
-        private readonly bool _isDoubleSide;//mesh是否是双面的
+        private readonly float _xSize, _ySize, _zSize; //图形在X轴、Y轴和Z轴方向的尺寸
+        private readonly bool _isDoubleSide; //mesh是否是双面的
 
         #endregion
-        
+
         #region ctor
 
         /// <summary>
-        /// 构造函数。
+        ///     构造函数。
         /// </summary>
         /// <param name="xSize"></param>
         /// <param name="ySize"></param>
@@ -63,17 +63,17 @@ namespace SimpleCore.ShapeMeshes
 
         protected override Vector3[] GetNormals()
         {
-            throw new NotImplementedException();
+            return _isDoubleSide ? GetDoubleSideNormals() : GetSingleSideNormals();
         }
 
         protected override int[] GetTriangles()
         {
-            throw new NotImplementedException();
+            return _isDoubleSide ? GetDoubleSideTriangles() : GetSingleSideTriangles();
         }
 
         protected override Vector2[] GetUVs()
         {
-            throw new NotImplementedException();
+            return _isDoubleSide ? GetDoubleSideUVs() : GetSingleSideUVs();
         }
 
         #endregion
@@ -81,7 +81,7 @@ namespace SimpleCore.ShapeMeshes
         #region static functions
 
         /// <summary>
-        /// 获得立方体图形的顶点数组。
+        ///     获得立方体图形的顶点数组。
         /// </summary>
         /// <param name="xSize"></param>
         /// <param name="ySize"></param>
@@ -106,13 +106,13 @@ namespace SimpleCore.ShapeMeshes
         }
 
         /// <summary>
-        /// 获得立方体单面顶点排列的顶点数组。
+        ///     获得立方体单面顶点排列的顶点数组。
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
         private static Vector3[] GetSingleSideVertices(IReadOnlyList<Vector3> points)
         {
-            return  new[]
+            return new[]
             {
                 //下
                 points[1], points[2], points[3], points[0],
@@ -130,7 +130,7 @@ namespace SimpleCore.ShapeMeshes
         }
 
         /// <summary>
-        /// 获得立方体双面顶点排列的顶点数组。
+        ///     获得立方体双面顶点排列的顶点数组。
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
@@ -157,6 +157,149 @@ namespace SimpleCore.ShapeMeshes
                 points[0], points[4], points[7], points[1],
                 points[1], points[7], points[4], points[0]
             };
+        }
+
+        /// <summary>
+        ///     获得立方体单面的法线数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector3[] GetSingleSideNormals()
+        {
+            return new[]
+            {
+                //下
+                Vector3.down, Vector3.down, Vector3.down, Vector3.down,
+                //上
+                Vector3.up, Vector3.up, Vector3.up, Vector3.up,
+                //左
+                Vector3.left, Vector3.left, Vector3.left, Vector3.left,
+                //右
+                Vector3.right, Vector3.right, Vector3.right, Vector3.right,
+                //前
+                Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward,
+                //后
+                Vector3.back, Vector3.back, Vector3.back, Vector3.back
+            };
+        }
+
+        /// <summary>
+        ///     获得立方体双面的法线数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector3[] GetDoubleSideNormals()
+        {
+            return new[]
+            {
+                //下
+                Vector3.down, Vector3.down, Vector3.down, Vector3.down,
+                Vector3.up, Vector3.up, Vector3.up, Vector3.up,
+                //上
+                Vector3.up, Vector3.up, Vector3.up, Vector3.up,
+                Vector3.down, Vector3.down, Vector3.down, Vector3.down,
+                //左
+                Vector3.left, Vector3.left, Vector3.left, Vector3.left,
+                Vector3.right, Vector3.right, Vector3.right, Vector3.right,
+                //右
+                Vector3.right, Vector3.right, Vector3.right, Vector3.right,
+                Vector3.left, Vector3.left, Vector3.left, Vector3.left,
+                //前
+                Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward,
+                Vector3.back, Vector3.back, Vector3.back, Vector3.back,
+                //后
+                Vector3.back, Vector3.back, Vector3.back, Vector3.back,
+                Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward
+            };
+        }
+
+        /// <summary>
+        ///     获得立方体单面三角面顶点的索引数组。
+        /// </summary>
+        /// <returns></returns>
+        private static int[] GetSingleSideTriangles()
+        {
+            var triangles = new int[6 * 3 * 2]; //六个面，每个面两个三角面
+            var triIndex = 0; //三角面的索引
+            for (var i = 0; i < 6; i++) //顺序为：下面、上面、左面、右面、前面、后面
+            {
+                //四个点组成两个三角面
+                var verIndex = 0 + 4 * i; //顶点的索引
+                triangles[triIndex++] = verIndex;
+                triangles[triIndex++] = verIndex + 1;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 3;
+                triangles[triIndex++] = verIndex;
+            }
+
+            return triangles;
+        }
+
+        /// <summary>
+        ///     获得立方体双面三角面顶点的索引数组。
+        /// </summary>
+        /// <returns></returns>
+        private static int[] GetDoubleSideTriangles()
+        {
+            var triangles = new int[6 * 3 * 2 * 2]; //六个面，每个面两个三角面，双面渲染
+            var triIndex = 0; //三角面的索引
+            for (var i = 0; i < 6; i++) //顺序为：下面、上面、左面、右面、前面、后面
+            {
+                //八个点组成双面渲染的三角面
+                var verIndex = 0 + 8 * i; //顶点的索引
+                triangles[triIndex++] = verIndex;
+                triangles[triIndex++] = verIndex + 1;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 3;
+                triangles[triIndex++] = verIndex;
+
+                triangles[triIndex++] = verIndex + 4;
+                triangles[triIndex++] = verIndex + 5;
+                triangles[triIndex++] = verIndex + 6;
+                triangles[triIndex++] = verIndex + 6;
+                triangles[triIndex++] = verIndex + 7;
+                triangles[triIndex++] = verIndex + 4;
+            }
+
+            return triangles;
+        }
+
+        /// <summary>
+        ///     获得立方体单面的UV数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector2[] GetSingleSideUVs()
+        {
+            var uvs = new Vector2[6 * 4];
+            var uvIndex = 0;
+            for (var i = 0; i < 6; i++)
+            {
+                uvs[uvIndex++] = new Vector2(0, 0);
+                uvs[uvIndex++] = new Vector2(0, 1);
+                uvs[uvIndex++] = new Vector2(1, 1);
+                uvs[uvIndex++] = new Vector2(1, 0);
+            }
+
+            return uvs;
+        }
+
+        /// <summary>
+        ///     获得立方体双面的UV数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector2[] GetDoubleSideUVs()
+        {
+            var uvs = new Vector2[6 * 4 * 2];
+            var uvIndex = 0;
+            for (var i = 0; i < 12; i++)
+            {
+                uvs[uvIndex++] = new Vector2(0, 0);
+                uvs[uvIndex++] = new Vector2(0, 1);
+                uvs[uvIndex++] = new Vector2(1, 1);
+                uvs[uvIndex++] = new Vector2(1, 0);
+            }
+
+            return uvs;
         }
 
         #endregion

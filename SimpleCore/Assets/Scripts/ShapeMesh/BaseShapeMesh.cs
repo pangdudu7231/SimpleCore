@@ -13,7 +13,7 @@ namespace SimpleCore.ShapeMeshes
         protected readonly MeshPivot _meshPivot; //图形 Mesh中心点的位置
         //protected readonly bool _isDoubleSide; //mesh 是否是双面的
 
-        protected Mesh _shapeMesh; //生成的 mesh 组件
+        protected Mesh _unityMesh; //生成的 mesh 组件
 
         #endregion
 
@@ -22,7 +22,7 @@ namespace SimpleCore.ShapeMeshes
         /// <summary>
         ///     获取生成的 mesh 组件
         /// </summary>
-        public Mesh ShapeMesh => _shapeMesh ??= GenerateMesh();
+        public Mesh UnityMesh => _unityMesh ??= GenerateMesh();
 
         #endregion
 
