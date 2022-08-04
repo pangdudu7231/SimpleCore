@@ -106,7 +106,7 @@ namespace SimpleCore.ShapeMeshes
         }
 
         /// <summary>
-        ///     获得立方体单面顶点排列的顶点数组。
+        ///     获得立方体单面的顶点数组。
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
@@ -130,7 +130,7 @@ namespace SimpleCore.ShapeMeshes
         }
 
         /// <summary>
-        ///     获得立方体双面顶点排列的顶点数组。
+        ///     获得立方体双面的顶点数组。
         /// </summary>
         /// <param name="points"></param>
         /// <returns></returns>
