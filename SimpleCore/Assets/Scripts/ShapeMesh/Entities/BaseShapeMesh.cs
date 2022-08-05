@@ -11,18 +11,8 @@ namespace SimpleCore.ShapeMeshes
 
         protected readonly string _meshName; //mesh 的名称
         protected readonly MeshPivot _meshPivot; //图形 Mesh中心点的位置
-        //protected readonly bool _isDoubleSide; //mesh 是否是双面的
 
         protected Mesh _unityMesh; //生成的 mesh 组件
-
-        #endregion
-
-        #region public properties
-
-        /// <summary>
-        ///     获取生成的 mesh 组件
-        /// </summary>
-        public Mesh UnityMesh => _unityMesh ??= GenerateMesh();
 
         #endregion
 
@@ -41,13 +31,13 @@ namespace SimpleCore.ShapeMeshes
 
         #endregion
 
-        #region protected functions
+        #region public  functions
 
         /// <summary>
         ///     生成 mesh 组件
         /// </summary>
         /// <returns></returns>
-        protected Mesh GenerateMesh()
+        public Mesh GenerateMesh()
         {
             var mesh = new Mesh {name = _meshName};
             var vertexOffset = GetVertexOffset();
@@ -58,7 +48,6 @@ namespace SimpleCore.ShapeMeshes
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
             mesh.Optimize();
-            
             return mesh;
         }
 
@@ -73,7 +62,7 @@ namespace SimpleCore.ShapeMeshes
         protected abstract Vector3 GetVertexOffset();
 
         /// <summary>
-        /// 获得顶点的数据集合。
+        ///     获得顶点的数据集合。
         /// </summary>
         /// <param name="vertexOffset"></param>
         /// <returns></returns>

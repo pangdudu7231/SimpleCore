@@ -23,8 +23,8 @@ namespace SimpleCore.ShapeMeshes
         /// <param name="zSize"></param>
         /// <param name="meshName"></param>
         /// <param name="meshPivot"></param>
-        public PlaneShapeMesh(float xSize, float zSize, string meshName = "PlaneMesh",
-            MeshPivot meshPivot = MeshPivot.Center) : base(meshName, meshPivot)
+        public PlaneShapeMesh(float xSize, float zSize, string meshName, MeshPivot meshPivot) : base(meshName,
+            meshPivot)
         {
             _xSize = xSize;
             _zSize = zSize;

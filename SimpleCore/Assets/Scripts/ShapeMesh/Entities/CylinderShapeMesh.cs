@@ -8,6 +8,8 @@ namespace SimpleCore.ShapeMeshes
     /// </summary>
     public sealed class CylinderShapeMesh : BaseShapeMesh
     {
+        //TODO 顶点数组、法线数组、切线数组、UV数组长度一致
+        
         #region private members
 
         private readonly float _height;//圆柱体的高度
@@ -149,7 +151,8 @@ namespace SimpleCore.ShapeMeshes
             var topY = height * 0.5f;
             var bottomY = -height * 0.5f;
             ApplyCircleVertices(topY);//底面
-            //TODO
+            ApplyCircleVertices(bottomY);//顶面
+            ApplySideVertices(topY, bottomY);//侧面
             return vertices;
 
             //应用上下圆面的顶点
@@ -174,6 +177,40 @@ namespace SimpleCore.ShapeMeshes
                     vertices[curIndex++] = new Vector3(cos, p_y, sin) - vertexOffset;
                 }
             }
+            
+            //应用侧面的顶点
+            void ApplySideVertices(float p_topY, float p_bottomY)
+            {
+                for (var i = 0; i <= circularSideCount; i++)
+                {
+                    var rad = i * Mathf.PI * 2 / circularSideCount;//弧度
+                    var cos = Mathf.Cos(rad) * radius;
+                    var sin = Mathf.Sin(rad) * radius;
+                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
+                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
+                }
+
+                for (var i = 0; i <= circularSideCount; i++)
+                {
+                    var rad = (circularSideCount - 1) * Mathf.PI * 2 / circularSideCount;//弧度
+                    var cos = Mathf.Cos(rad) * radius;
+                    var sin = Mathf.Sin(rad) * radius;
+                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
+                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
+                }
+            }
+        }
+
+
+        private static Vector3[] GetSingleSideNormals(int circularSideCount)
+        {
+            var curIndex = 0;//当前索引
+            //法线数组的长度
+            //底面顶点(圆心点 + 圆弧点)、顶面(圆心点 + 圆弧点)、侧面(圆弧点 * 2 + 最后两个点和开始两个点重合)
+            var arrayLen = (circularSideCount + 1) * 2 + (circularSideCount + 1) * 2;
+            var normals = new Vector3[arrayLen];
+
+            return normals;
         }
 
         #endregion
