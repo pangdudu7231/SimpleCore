@@ -2,7 +2,7 @@
 
 namespace SimpleCore.ShapeMeshes.Example
 {
-    public class PlaneShapeMeshDemo : MonoBehaviour
+    public class CylinderShapeMeshDemo : MonoBehaviour
     {
         #region public members
 
@@ -14,9 +14,9 @@ namespace SimpleCore.ShapeMeshes.Example
 
         private void Start()
         {
-            var tempGo = new GameObject("PlaneShape");
+            var tempGo = new GameObject("CylinderShape");
             var meshFilter = tempGo.AddComponent<MeshFilter>();
-            meshFilter.mesh = ShapeMeshFactory.GeneratePlaneShapeMesh(5, 5, meshPivot: meshPivot);
+            meshFilter.mesh = ShapeMeshFactory.GenerateCylinderShapeMesh(5, 2, meshPivot: meshPivot);
             tempGo.AddComponent<MeshRenderer>().material = Resources.Load<Material>("ShapeMesh/Material");
             tempGo.AddComponent<MeshDisplay>();
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SimpleCore.ShapeMeshes
@@ -6,11 +7,12 @@ namespace SimpleCore.ShapeMeshes
     /// <summary>
     ///     立方体图形 mesh类。
     /// </summary>
-    public abstract class BoxShapeMesh : BaseShapeMesh
+    public class BoxShapeMesh : BaseShapeMesh
     {
         #region private members
 
         private readonly float _xSize, _ySize, _zSize; //图形在X轴、Y轴和Z轴方向的尺寸
+        private readonly bool _isDoubleSide; //是否是双面的mesh
 
         #endregion
 
@@ -22,14 +24,16 @@ namespace SimpleCore.ShapeMeshes
         /// <param name="xSize"></param>
         /// <param name="ySize"></param>
         /// <param name="zSize"></param>
+        /// <param name="isDoubleSide"></param>
         /// <param name="meshName"></param>
         /// <param name="meshPivot"></param>
-        protected BoxShapeMesh(float xSize, float ySize, float zSize, string meshName, MeshPivot meshPivot) : base(
-            meshName, meshPivot)
+        public BoxShapeMesh(float xSize, float ySize, float zSize, bool isDoubleSide, string meshName,
+            MeshPivot meshPivot) : base(meshName, meshPivot)
         {
             _xSize = xSize;
             _ySize = ySize;
             _zSize = zSize;
+            _isDoubleSide = isDoubleSide;
         }
 
         #endregion
@@ -51,18 +55,36 @@ namespace SimpleCore.ShapeMeshes
             };
         }
 
-        protected override Vector3[] GetVertices(Vector3 vertexOffset)
+        protected override int GetArrayLen()
         {
-            var points = GetBoxShapePoints(_xSize, _ySize, _zSize, vertexOffset);
-            return GetVertices(points);
+            return _isDoubleSide ? 4 * 6 * 2 : 4 * 6;
         }
 
-        /// <summary>
-        ///     获得顶点的集合。
-        /// </summary>
-        /// <param name="points"></param>
-        /// <returns></returns>
-        protected abstract Vector3[] GetVertices(Vector3[] points);
+        protected override int GetTriArrayLen()
+        {
+            return _isDoubleSide ? 6 * 3 * 2 * 2 : 6 * 3 * 2;
+        }
+
+        protected override Vector3[] GetVertices(int arrayLen, Vector3 vertexOffset)
+        {
+            var points = GetBoxShapePoints(_xSize, _ySize, _zSize, vertexOffset);
+            return _isDoubleSide ? GetDoubleSideVertices(points) : GetSingleSideVertices(points);
+        }
+
+        protected override Vector3[] GetNormals(int arrayLen)
+        {
+            return _isDoubleSide ? GetDoubleSideNormals() : GetSingleSideNormals();
+        }
+
+        protected override int[] GetTriangles(int triArrayLen)
+        {
+            return _isDoubleSide ? GetDoubleSideTriangles() : GetSingleSideTriangles();
+        }
+
+        protected override Vector2[] GetUVs(int arrayLen)
+        {
+            return _isDoubleSide ? GetDoubleSideUVs() : GetSingleSideUVs();
+        }
 
         #endregion
 
@@ -91,6 +113,203 @@ namespace SimpleCore.ShapeMeshes
             {
                 p0, p1, p2, p3, p4, p5, p6, p7
             };
+        }
+
+        /// <summary>
+        ///     获得立方体图形单面mesh的顶点数组。
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        private static Vector3[] GetSingleSideVertices(IReadOnlyList<Vector3> points)
+        {
+            return new[]
+            {
+                //下
+                points[1], points[2], points[3], points[0],
+                //上
+                points[4], points[5], points[6], points[7],
+                //左
+                points[3], points[5], points[4], points[0],
+                //右
+                points[1], points[7], points[6], points[2],
+                //前
+                points[2], points[6], points[5], points[3],
+                //后
+                points[0], points[4], points[7], points[1]
+            };
+        }
+
+        /// <summary>
+        ///     获得立方体图形双面mesh的顶点数组
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns></returns>
+        private static Vector3[] GetDoubleSideVertices(IReadOnlyList<Vector3> points)
+        {
+            return new[]
+            {
+                //下
+                points[1], points[2], points[3], points[0],
+                points[0], points[3], points[2], points[1],
+                //上
+                points[4], points[5], points[6], points[7],
+                points[7], points[6], points[5], points[4],
+                //左
+                points[3], points[5], points[4], points[0],
+                points[0], points[4], points[5], points[3],
+                //右
+                points[1], points[7], points[6], points[2],
+                points[2], points[6], points[7], points[1],
+                //前
+                points[2], points[6], points[5], points[3],
+                points[3], points[5], points[6], points[2],
+                //后
+                points[0], points[4], points[7], points[1],
+                points[1], points[7], points[4], points[0]
+            };
+        }
+
+        /// <summary>
+        ///     获得立方体图形单面mesh的法线数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector3[] GetSingleSideNormals()
+        {
+            return new[]
+            {
+                //下
+                Vector3.down, Vector3.down, Vector3.down, Vector3.down,
+                //上
+                Vector3.up, Vector3.up, Vector3.up, Vector3.up,
+                //左
+                Vector3.left, Vector3.left, Vector3.left, Vector3.left,
+                //右
+                Vector3.right, Vector3.right, Vector3.right, Vector3.right,
+                //前
+                Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward,
+                //后
+                Vector3.back, Vector3.back, Vector3.back, Vector3.back
+            };
+        }
+
+        /// <summary>
+        ///     获得立方体图形双面mesh的法线数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector3[] GetDoubleSideNormals()
+        {
+            return new[]
+            {
+                //下
+                Vector3.down, Vector3.down, Vector3.down, Vector3.down,
+                Vector3.up, Vector3.up, Vector3.up, Vector3.up,
+                //上
+                Vector3.up, Vector3.up, Vector3.up, Vector3.up,
+                Vector3.down, Vector3.down, Vector3.down, Vector3.down,
+                //左
+                Vector3.left, Vector3.left, Vector3.left, Vector3.left,
+                Vector3.right, Vector3.right, Vector3.right, Vector3.right,
+                //右
+                Vector3.right, Vector3.right, Vector3.right, Vector3.right,
+                Vector3.left, Vector3.left, Vector3.left, Vector3.left,
+                //前
+                Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward,
+                Vector3.back, Vector3.back, Vector3.back, Vector3.back,
+                //后
+                Vector3.back, Vector3.back, Vector3.back, Vector3.back,
+                Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward
+            };
+        }
+
+        /// <summary>
+        ///     获得立方体图形单面mesh的三角面顶点索引。
+        /// </summary>
+        /// <returns></returns>
+        private static int[] GetSingleSideTriangles()
+        {
+            var triangles = new int[6 * 3 * 2]; //六个面，每个面两个三角面
+            var triIndex = 0; //三角面的索引
+            for (var i = 0; i < 6; i++) //顺序为：下面、上面、左面、右面、前面、后面
+            {
+                //四个点组成两个三角面
+                var verIndex = 0 + 4 * i; //顶点的索引
+                triangles[triIndex++] = verIndex;
+                triangles[triIndex++] = verIndex + 1;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 3;
+                triangles[triIndex++] = verIndex;
+            }
+
+            return triangles;
+        }
+
+        /// <summary>
+        ///     获得立方体图形双面mesh的三角面顶点索引。
+        /// </summary>
+        /// <returns></returns>
+        private static int[] GetDoubleSideTriangles()
+        {
+            var triangles = new int[6 * 3 * 2 * 2]; //六个面，每个面两个三角面，双面渲染
+            var triIndex = 0; //三角面的索引
+            for (var i = 0; i < 6; i++) //顺序为：下面、上面、左面、右面、前面、后面
+            {
+                //八个点组成双面渲染的三角面
+                var verIndex = 0 + 8 * i; //顶点的索引
+                triangles[triIndex++] = verIndex;
+                triangles[triIndex++] = verIndex + 1;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 2;
+                triangles[triIndex++] = verIndex + 3;
+                triangles[triIndex++] = verIndex;
+
+                triangles[triIndex++] = verIndex + 4;
+                triangles[triIndex++] = verIndex + 5;
+                triangles[triIndex++] = verIndex + 6;
+                triangles[triIndex++] = verIndex + 6;
+                triangles[triIndex++] = verIndex + 7;
+                triangles[triIndex++] = verIndex + 4;
+            }
+
+            return triangles;
+        }
+
+        /// <summary>
+        ///     获得立方体图形单面mesh的uv数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector2[] GetSingleSideUVs()
+        {
+            var uvs = new Vector2[6 * 4];
+            var uvIndex = 0;
+            for (var i = 0; i < 6; i++)
+            {
+                uvs[uvIndex++] = new Vector2(0, 0);
+                uvs[uvIndex++] = new Vector2(0, 1);
+                uvs[uvIndex++] = new Vector2(1, 1);
+                uvs[uvIndex++] = new Vector2(1, 0);
+            }
+
+            return uvs;
+        }
+
+        /// <summary>
+        ///     获得立方体图形双面mesh的uv数组。
+        /// </summary>
+        /// <returns></returns>
+        private static Vector2[] GetDoubleSideUVs()
+        {
+            var uvs = new Vector2[6 * 4 * 2];
+            var uvIndex = 0;
+            for (var i = 0; i < 12; i++)
+            {
+                uvs[uvIndex++] = new Vector2(0, 0);
+                uvs[uvIndex++] = new Vector2(0, 1);
+                uvs[uvIndex++] = new Vector2(1, 1);
+                uvs[uvIndex++] = new Vector2(1, 0);
+            }
+
+            return uvs;
         }
 
         #endregion

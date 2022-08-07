@@ -14,11 +14,9 @@ namespace SimpleCore.ShapeMeshes.Example
 
         private void Start()
         {
-            var shapeMesh = new BoxShapeMesh(2, 2, 2, meshPivot: meshPivot);
-
             var tempGo = new GameObject("BoxShape");
             var meshFilter = tempGo.AddComponent<MeshFilter>();
-            meshFilter.mesh = shapeMesh.UnityMesh;
+            meshFilter.mesh = ShapeMeshFactory.GenerateBoxShapeMesh(2, 2, 2, meshPivot: meshPivot);
             tempGo.AddComponent<MeshRenderer>().material = Resources.Load<Material>("ShapeMesh/Material");
             tempGo.AddComponent<MeshDisplay>();
         }

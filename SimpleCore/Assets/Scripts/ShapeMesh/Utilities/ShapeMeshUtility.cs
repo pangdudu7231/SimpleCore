@@ -16,7 +16,7 @@ namespace SimpleCore.ShapeMeshes
         /// <param name="radius"></param>
         /// <param name="arcLen"></param>
         /// <returns></returns>
-        public static int GetCircularSideCount(float radius, float arcLen = 0.1f)
+        public static int GetCircleSideCount(float radius, float arcLen = 0.1f)
         {
             //取值范围为3~2000
             const int MIN_SIDE_COUNT = 3, MAX_SIDE_COUNT = 2000;

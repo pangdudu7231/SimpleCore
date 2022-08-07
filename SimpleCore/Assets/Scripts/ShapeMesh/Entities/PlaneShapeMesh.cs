@@ -49,7 +49,17 @@ namespace SimpleCore.ShapeMeshes
             };
         }
 
-        protected override Vector3[] GetVertices(Vector3 vertexOffset)
+        protected override int GetArrayLen()
+        {
+            return 8;
+        }
+
+        protected override int GetTriArrayLen()
+        {
+            return 12;
+        }
+
+        protected override Vector3[] GetVertices(int arrayLen, Vector3 vertexOffset)
         {
             var points = GetPlaneShapePoints(_xSize, _zSize, vertexOffset);
             return new[]
@@ -59,7 +69,7 @@ namespace SimpleCore.ShapeMeshes
             };
         }
 
-        protected override Vector3[] GetNormals()
+        protected override Vector3[] GetNormals(int arrayLen)
         {
             return new[]
             {
@@ -68,7 +78,7 @@ namespace SimpleCore.ShapeMeshes
             };
         }
 
-        protected override int[] GetTriangles()
+        protected override int[] GetTriangles(int triArrayLen)
         {
             return new[]
             {
@@ -77,7 +87,7 @@ namespace SimpleCore.ShapeMeshes
             };
         }
 
-        protected override Vector2[] GetUVs()
+        protected override Vector2[] GetUVs(int arrayLen)
         {
             return new[]
             {
