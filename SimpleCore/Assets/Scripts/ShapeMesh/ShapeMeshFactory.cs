@@ -57,6 +57,54 @@ namespace SimpleCore.ShapeMeshes
             return shapeMesh.GenerateMesh();
         }
 
+        /// <summary>
+        ///     生成圆锥体图形 mesh组件。
+        /// </summary>
+        /// <param name="height"></param>
+        /// <param name="radius"></param>
+        /// <param name="isDoubleSide"></param>
+        /// <param name="meshName"></param>
+        /// <param name="meshPivot"></param>
+        /// <returns></returns>
+        public static Mesh GenerateConeShapeMesh(float height, float radius, bool isDoubleSide = true,
+            string meshName = "ConeMesh", MeshPivot meshPivot = MeshPivot.Center)
+        {
+            var shapeMesh = new ConeShapeMesh(height, radius, isDoubleSide, meshName, meshPivot);
+            return shapeMesh.GenerateMesh();
+        }
+
+        /// <summary>
+        ///     生成圆锥台图形 mesh组件。
+        /// </summary>
+        /// <param name="height"></param>
+        /// <param name="topRadius"></param>
+        /// <param name="bottomRadius"></param>
+        /// <param name="isDoubleSide"></param>
+        /// <param name="meshName"></param>
+        /// <param name="meshPivot"></param>
+        /// <returns></returns>
+        public static Mesh GenerateFrustumShapeMesh(float height, float topRadius, float bottomRadius,
+            bool isDoubleSide = true, string meshName = "FrustumMesh", MeshPivot meshPivot = MeshPivot.Center)
+        {
+            var shapeMesh = new FrustumShapeMesh(height, topRadius, bottomRadius, isDoubleSide, meshName, meshPivot);
+            return shapeMesh.GenerateMesh();
+        }
+
+        /// <summary>
+        ///     生成球图形 mesh组件。
+        /// </summary>
+        /// <param name="radius"></param>
+        /// <param name="isDoubleSide"></param>
+        /// <param name="meshName"></param>
+        /// <param name="meshPivot"></param>
+        /// <returns></returns>
+        public static Mesh GenerateSphereShapeMesh(float radius, bool isDoubleSide = true,
+            string meshName = "SphereMesh", MeshPivot meshPivot = MeshPivot.Center)
+        {
+            var shapeMesh = new SphereShapeMesh(radius, isDoubleSide, meshName, meshPivot);
+            return shapeMesh.GenerateMesh();
+        }
+
         #endregion
     }
 }

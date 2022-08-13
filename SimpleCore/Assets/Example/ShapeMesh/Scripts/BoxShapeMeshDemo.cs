@@ -9,7 +9,7 @@ namespace SimpleCore.ShapeMeshes.Example
         public MeshPivot meshPivot = MeshPivot.Center;
 
         #endregion
-        
+
         #region unity functions
 
         private void Start()

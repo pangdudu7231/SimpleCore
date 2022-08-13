@@ -4,14 +4,15 @@ using UnityEngine;
 namespace SimpleCore.ShapeMeshes
 {
     /// <summary>
-    ///     圆柱体图形 mesh类。
+    ///     圆锥台图形 mesh类。
     /// </summary>
-    public sealed class CylinderShapeMesh : BaseShapeMesh
+    public sealed class FrustumShapeMesh : BaseShapeMesh
     {
         #region private members
 
-        private readonly float _height; //圆柱体的高度
-        private readonly float _radius; //圆柱体的底面半径
+        private readonly float _height; //圆锥台的高度
+        private readonly float _topRadius; //圆锥台的顶面半径
+        private readonly float _bottomRadius; //圆锥台的底面半径
         private readonly bool _isDoubleSide; //mesh是否是双面的
 
         private readonly int _circleSideCount; //圆边切割的数量。
@@ -21,21 +22,23 @@ namespace SimpleCore.ShapeMeshes
         #region ctor
 
         /// <summary>
-        ///     构造函数
+        ///     构造函数。
         /// </summary>
         /// <param name="height"></param>
-        /// <param name="radius"></param>
+        /// <param name="topRadius"></param>
+        /// <param name="bottomRadius"></param>
         /// <param name="isDoubleSide"></param>
         /// <param name="meshName"></param>
         /// <param name="meshPivot"></param>
-        public CylinderShapeMesh(float height, float radius, bool isDoubleSide, string meshName, MeshPivot meshPivot) :
-            base(meshName, meshPivot)
+        public FrustumShapeMesh(float height, float topRadius, float bottomRadius, bool isDoubleSide, string meshName,
+            MeshPivot meshPivot) : base(meshName, meshPivot)
         {
             _height = height;
-            _radius = radius;
+            _topRadius = topRadius;
+            _bottomRadius = bottomRadius;
             _isDoubleSide = isDoubleSide;
 
-            _circleSideCount = ShapeMeshUtility.GetCircleSideCount(radius);
+            _circleSideCount = ShapeMeshUtility.GetCircleSideCount(Mathf.Max(_topRadius, _bottomRadius));
         }
 
         #endregion
@@ -49,10 +52,10 @@ namespace SimpleCore.ShapeMeshes
                 MeshPivot.Center => Vector3.zero,
                 MeshPivot.Top => new Vector3(0, _height, 0) * 0.5f,
                 MeshPivot.Bottom => new Vector3(0, -_height, 0) * 0.5f,
-                MeshPivot.Left => new Vector3(-_radius, 0, 0) * 0.5f,
-                MeshPivot.Right => new Vector3(_radius, 0, 0) * 0.5f,
-                MeshPivot.Front => new Vector3(0, 0, _radius) * 0.5f,
-                MeshPivot.Back => new Vector3(0, 0, -_radius) * 0.5f,
+                MeshPivot.Left => new Vector3(-(_topRadius + _bottomRadius), 0, 0) * 0.5f,
+                MeshPivot.Right => new Vector3(_topRadius + _bottomRadius, 0, 0) * 0.5f,
+                MeshPivot.Front => new Vector3(0, 0, _topRadius + _bottomRadius) * 0.5f,
+                MeshPivot.Back => new Vector3(0, 0, -(_topRadius + _bottomRadius)) * 0.5f,
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
@@ -76,8 +79,8 @@ namespace SimpleCore.ShapeMeshes
         protected override Vector3[] GetVertices(int arrayLen, Vector3 vertexOffset)
         {
             return _isDoubleSide
-                ? GetDoubleSideVertices(_height, _radius, arrayLen, vertexOffset, _circleSideCount)
-                : GetSingleSideVertices(_height, _radius, arrayLen, vertexOffset, _circleSideCount);
+                ? GetDoubleSideVertices(_height, _topRadius, _bottomRadius, arrayLen, vertexOffset, _circleSideCount)
+                : GetSingleSideVertices(_height, _topRadius, _bottomRadius, arrayLen, vertexOffset, _circleSideCount);
         }
 
         protected override Vector3[] GetNormals(int arrayLen)
@@ -106,36 +109,47 @@ namespace SimpleCore.ShapeMeshes
         #region static functions
 
         /// <summary>
-        ///     获得圆柱体单面的顶点数组。
+        ///     获得圆锥台单面的顶点数组。
         /// </summary>
         /// <param name="height"></param>
-        /// <param name="radius"></param>
+        /// <param name="topRadius"></param>
+        /// <param name="bottomRadius"></param>
         /// <param name="arrayLen"></param>
         /// <param name="vertexOffset"></param>
         /// <param name="circleSideCount"></param>
         /// <returns></returns>
-        private static Vector3[] GetSingleSideVertices(float height, float radius, int arrayLen, Vector3 vertexOffset,
-            int circleSideCount)
+        private static Vector3[] GetSingleSideVertices(float height, float topRadius, float bottomRadius, int arrayLen,
+            Vector3 vertexOffset, int circleSideCount)
         {
             var curIndex = 0; //当前的索引
             var vertices = new Vector3[arrayLen];
             var topY = height * 0.5f;
             var bottomY = -height * 0.5f;
-            ApplyCircleVertices(bottomY); //底面
-            ApplyCircleVertices(topY); //顶面
+            ApplyCircleVertices(topY, bottomY); //底面和顶面
             ApplySideVertices(topY, bottomY); //侧面
             return vertices;
 
             //应用上下圆面的顶点
-            void ApplyCircleVertices(float p_y)
+            void ApplyCircleVertices(float p_topY, float p_bottomY)
             {
-                vertices[curIndex++] = new Vector3(0, p_y, 0) - vertexOffset; //圆心点
+                //底面
+                vertices[curIndex++] = new Vector3(0, p_bottomY, 0) - vertexOffset;
                 for (var i = 0; i < circleSideCount; i++)
                 {
                     var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
-                    var cos = Mathf.Cos(rad) * radius;
-                    var sin = Mathf.Sin(rad) * radius;
-                    vertices[curIndex++] = new Vector3(cos, p_y, sin) - vertexOffset;
+                    var cos = Mathf.Cos(rad) * bottomRadius;
+                    var sin = Mathf.Sin(rad) * bottomRadius;
+                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
+                }
+
+                //顶面
+                vertices[curIndex++] = new Vector3(0, p_topY, 0) - vertexOffset;
+                for (var i = 0; i < circleSideCount; i++)
+                {
+                    var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
+                    var cos = Mathf.Cos(rad) * topRadius;
+                    var sin = Mathf.Sin(rad) * topRadius;
+                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
                 }
             }
 
@@ -145,55 +159,76 @@ namespace SimpleCore.ShapeMeshes
                 for (var i = 0; i <= circleSideCount; i++)
                 {
                     var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
-                    var cos = Mathf.Cos(rad) * radius;
-                    var sin = Mathf.Sin(rad) * radius;
-                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
-                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
+                    var botCos = Mathf.Cos(rad) * bottomRadius;
+                    var botSin = Mathf.Sin(rad) * bottomRadius;
+                    var topCos = Mathf.Cos(rad) * topRadius;
+                    var topSin = Mathf.Sin(rad) * topRadius;
+                    vertices[curIndex++] = new Vector3(botCos, p_bottomY, botSin) - vertexOffset;
+                    vertices[curIndex++] = new Vector3(topCos, p_topY, topSin) - vertexOffset;
                 }
             }
         }
 
         /// <summary>
-        ///     获得圆柱体双面的顶点数组。
+        ///     获得圆锥台双面的顶点数组。
         /// </summary>
         /// <param name="height"></param>
-        /// <param name="radius"></param>
+        /// <param name="topRadius"></param>
+        /// <param name="bottomRadius"></param>
         /// <param name="arrayLen"></param>
         /// <param name="vertexOffset"></param>
         /// <param name="circleSideCount"></param>
         /// <returns></returns>
-        private static Vector3[] GetDoubleSideVertices(float height, float radius, int arrayLen, Vector3 vertexOffset,
-            int circleSideCount)
+        private static Vector3[] GetDoubleSideVertices(float height, float topRadius, float bottomRadius, int arrayLen,
+            Vector3 vertexOffset, int circleSideCount)
         {
             var curIndex = 0; //当前的索引
             var vertices = new Vector3[arrayLen];
             var topY = height * 0.5f;
             var bottomY = -height * 0.5f;
-            ApplyCircleVertices(topY); //底面
-            ApplyCircleVertices(bottomY); //顶面
+            ApplyCircleVertices(topY, bottomY); //底面和顶面
             ApplySideVertices(topY, bottomY); //侧面
             return vertices;
 
             //应用上下圆面的顶点
-            void ApplyCircleVertices(float p_y)
+            void ApplyCircleVertices(float p_topY, float p_bottomY)
             {
-                vertices[curIndex++] = new Vector3(0, p_y, 0) - vertexOffset; //圆心点
+                //底面
+                vertices[curIndex++] = new Vector3(0, p_bottomY, 0) - vertexOffset;
                 for (var i = 0; i < circleSideCount; i++)
                 {
                     var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
-                    var cos = Mathf.Cos(rad) * radius;
-                    var sin = Mathf.Sin(rad) * radius;
-                    vertices[curIndex++] = new Vector3(cos, p_y, sin) - vertexOffset;
+                    var cos = Mathf.Cos(rad) * bottomRadius;
+                    var sin = Mathf.Sin(rad) * bottomRadius;
+                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
                 }
 
-                //双面渲染顶点
-                vertices[curIndex++] = new Vector3(0, p_y, 0) - vertexOffset; //圆心点
+                vertices[curIndex++] = new Vector3(0, p_bottomY, 0) - vertexOffset;
                 for (var i = 0; i < circleSideCount; i++)
                 {
                     var rad = (circleSideCount - i - 1) * Mathf.PI * 2 / circleSideCount; //弧度
-                    var cos = Mathf.Cos(rad) * radius;
-                    var sin = Mathf.Sin(rad) * radius;
-                    vertices[curIndex++] = new Vector3(cos, p_y, sin) - vertexOffset;
+                    var cos = Mathf.Cos(rad) * bottomRadius;
+                    var sin = Mathf.Sin(rad) * bottomRadius;
+                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
+                }
+
+                //顶面
+                vertices[curIndex++] = new Vector3(0, p_topY, 0) - vertexOffset;
+                for (var i = 0; i < circleSideCount; i++)
+                {
+                    var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
+                    var cos = Mathf.Cos(rad) * topRadius;
+                    var sin = Mathf.Sin(rad) * topRadius;
+                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
+                }
+
+                vertices[curIndex++] = new Vector3(0, p_topY, 0) - vertexOffset;
+                for (var i = 0; i < circleSideCount; i++)
+                {
+                    var rad = (circleSideCount - i - 1) * Mathf.PI * 2 / circleSideCount; //弧度
+                    var cos = Mathf.Cos(rad) * topRadius;
+                    var sin = Mathf.Sin(rad) * topRadius;
+                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
                 }
             }
 
@@ -203,25 +238,29 @@ namespace SimpleCore.ShapeMeshes
                 for (var i = 0; i <= circleSideCount; i++)
                 {
                     var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
-                    var cos = Mathf.Cos(rad) * radius;
-                    var sin = Mathf.Sin(rad) * radius;
-                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
-                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
+                    var botCos = Mathf.Cos(rad) * bottomRadius;
+                    var botSin = Mathf.Sin(rad) * bottomRadius;
+                    var topCos = Mathf.Cos(rad) * topRadius;
+                    var topSin = Mathf.Sin(rad) * topRadius;
+                    vertices[curIndex++] = new Vector3(botCos, p_bottomY, botSin) - vertexOffset;
+                    vertices[curIndex++] = new Vector3(topCos, p_topY, topSin) - vertexOffset;
                 }
 
                 for (var i = 0; i <= circleSideCount; i++)
                 {
                     var rad = (circleSideCount - i) * Mathf.PI * 2 / circleSideCount; //弧度
-                    var cos = Mathf.Cos(rad) * radius;
-                    var sin = Mathf.Sin(rad) * radius;
-                    vertices[curIndex++] = new Vector3(cos, p_bottomY, sin) - vertexOffset;
-                    vertices[curIndex++] = new Vector3(cos, p_topY, sin) - vertexOffset;
+                    var botCos = Mathf.Cos(rad) * bottomRadius;
+                    var botSin = Mathf.Sin(rad) * bottomRadius;
+                    var topCos = Mathf.Cos(rad) * topRadius;
+                    var topSin = Mathf.Sin(rad) * topRadius;
+                    vertices[curIndex++] = new Vector3(botCos, p_bottomY, botSin) - vertexOffset;
+                    vertices[curIndex++] = new Vector3(topCos, p_topY, topSin) - vertexOffset;
                 }
             }
         }
 
         /// <summary>
-        ///     获得圆柱体图形单面mesh的法线数组。
+        ///     获得圆锥台单面的法线数组。
         /// </summary>
         /// <param name="arrayLen"></param>
         /// <param name="circleSideCount"></param>
@@ -237,8 +276,8 @@ namespace SimpleCore.ShapeMeshes
             //应用上下圆面的法线数组
             void ApplyCircleNormals()
             {
-                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.down; //底面
-                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.up; //顶面
+                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.down;
+                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.up;
             }
 
             //应用侧面的法线数组
@@ -246,16 +285,17 @@ namespace SimpleCore.ShapeMeshes
             {
                 for (var i = 0; i <= circleSideCount; i++)
                 {
-                    var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
-                    var normal = new Vector3(Mathf.Cos(rad), 0, Mathf.Sin(rad)); //侧面的顶点是上下成对的
-                    normals[curIndex++] = normal;
-                    normals[curIndex++] = normal;
+                    var rad = i * Mathf.PI * 2 / circleSideCount;
+                    var cos = Mathf.Cos(rad);
+                    var sin = Mathf.Sin(rad);
+                    normals[curIndex++] = new Vector3(cos, 0, sin);
+                    normals[curIndex++] = new Vector3(cos, 0, sin);
                 }
             }
         }
 
         /// <summary>
-        ///     获得圆柱体图形双面mesh的法线数组。
+        ///     获得圆锥台双面的法线数组。
         /// </summary>
         /// <param name="arrayLen"></param>
         /// <param name="circleSideCount"></param>
@@ -271,10 +311,10 @@ namespace SimpleCore.ShapeMeshes
             //应用上下圆面的法线数组
             void ApplyCircleNormals()
             {
-                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.down; //底面
+                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.down;
                 for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.up;
 
-                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.up; //顶面
+                for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.up;
                 for (var i = 0; i <= circleSideCount; i++) normals[curIndex++] = Vector3.down;
             }
 
@@ -283,24 +323,26 @@ namespace SimpleCore.ShapeMeshes
             {
                 for (var i = 0; i <= circleSideCount; i++)
                 {
-                    var rad = i * Mathf.PI * 2 / circleSideCount; //弧度
-                    var normal = new Vector3(Mathf.Cos(rad), 0, Mathf.Sin(rad)); //侧面的顶点是上下成对的
-                    normals[curIndex++] = normal;
-                    normals[curIndex++] = normal;
+                    var rad = i * Mathf.PI * 2 / circleSideCount;
+                    var cos = Mathf.Cos(rad);
+                    var sin = Mathf.Sin(rad);
+                    normals[curIndex++] = new Vector3(cos, 0, sin);
+                    normals[curIndex++] = new Vector3(cos, 0, sin);
                 }
 
                 for (var i = 0; i <= circleSideCount; i++)
                 {
-                    var rad = (circleSideCount - i) * Mathf.PI * 2 / circleSideCount; //弧度
-                    var normal = new Vector3(Mathf.Cos(rad), 0, Mathf.Sin(rad)); //侧面的顶点是上下成对的
-                    normals[curIndex++] = normal;
-                    normals[curIndex++] = normal;
+                    var rad = (circleSideCount - i) * Mathf.PI * 2 / circleSideCount;
+                    var cos = Mathf.Cos(rad);
+                    var sin = Mathf.Sin(rad);
+                    normals[curIndex++] = new Vector3(cos, 0, sin);
+                    normals[curIndex++] = new Vector3(cos, 0, sin);
                 }
             }
         }
 
         /// <summary>
-        ///     获得圆柱体图形单面mesh的三角面顶点索引数组。
+        ///     获得圆锥台单面的三角面数组。
         /// </summary>
         /// <param name="triArrayLen"></param>
         /// <param name="circleSideCount"></param>
@@ -331,6 +373,7 @@ namespace SimpleCore.ShapeMeshes
                 triangles[curIndex++] = p_startIndex + 1;
 
                 //顶面
+                p_startIndex += circleSideCount + 1;
                 for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
                 {
                     triangles[curIndex++] = p_startIndex;
@@ -360,7 +403,7 @@ namespace SimpleCore.ShapeMeshes
         }
 
         /// <summary>
-        ///     获得圆柱体图形双面mesh的三角面顶点索引数组。
+        ///     获得圆锥台双面的三角面数组。
         /// </summary>
         /// <param name="triArrayLen"></param>
         /// <param name="circleSideCount"></param>
@@ -379,56 +422,54 @@ namespace SimpleCore.ShapeMeshes
             void ApplyCircleTriangles(int p_startIndex)
             {
                 //底面
+                for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
                 {
-                    for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
-                    {
-                        triangles[curIndex++] = p_startIndex;
-                        triangles[curIndex++] = i;
-                        triangles[curIndex++] = i + 1;
-                    }
-
                     triangles[curIndex++] = p_startIndex;
-                    triangles[curIndex++] = p_startIndex + circleSideCount;
-                    triangles[curIndex++] = p_startIndex + 1;
-
-                    p_startIndex += circleSideCount + 1;
-                    for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
-                    {
-                        triangles[curIndex++] = p_startIndex;
-                        triangles[curIndex++] = i;
-                        triangles[curIndex++] = i + 1;
-                    }
-
-                    triangles[curIndex++] = p_startIndex;
-                    triangles[curIndex++] = p_startIndex + circleSideCount;
-                    triangles[curIndex++] = p_startIndex + 1;
+                    triangles[curIndex++] = i;
+                    triangles[curIndex++] = i + 1;
                 }
+
+                triangles[curIndex++] = p_startIndex;
+                triangles[curIndex++] = p_startIndex + circleSideCount;
+                triangles[curIndex++] = p_startIndex + 1;
+
+                p_startIndex += circleSideCount + 1;
+                for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
+                {
+                    triangles[curIndex++] = p_startIndex;
+                    triangles[curIndex++] = i;
+                    triangles[curIndex++] = i + 1;
+                }
+
+                triangles[curIndex++] = p_startIndex;
+                triangles[curIndex++] = p_startIndex + circleSideCount;
+                triangles[curIndex++] = p_startIndex + 1;
+
 
                 //顶面
+                p_startIndex += circleSideCount + 1;
+                for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
                 {
-                    for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
-                    {
-                        triangles[curIndex++] = p_startIndex;
-                        triangles[curIndex++] = i + 1;
-                        triangles[curIndex++] = i;
-                    }
-
                     triangles[curIndex++] = p_startIndex;
-                    triangles[curIndex++] = p_startIndex + 1;
-                    triangles[curIndex++] = p_startIndex + circleSideCount;
-
-                    p_startIndex += circleSideCount + 1;
-                    for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
-                    {
-                        triangles[curIndex++] = p_startIndex;
-                        triangles[curIndex++] = i + 1;
-                        triangles[curIndex++] = i;
-                    }
-
-                    triangles[curIndex++] = p_startIndex;
-                    triangles[curIndex++] = p_startIndex + 1;
-                    triangles[curIndex++] = p_startIndex + circleSideCount;
+                    triangles[curIndex++] = i + 1;
+                    triangles[curIndex++] = i;
                 }
+
+                triangles[curIndex++] = p_startIndex;
+                triangles[curIndex++] = p_startIndex + 1;
+                triangles[curIndex++] = p_startIndex + circleSideCount;
+
+                p_startIndex += circleSideCount + 1;
+                for (var i = p_startIndex + 1; i < p_startIndex + circleSideCount; i++)
+                {
+                    triangles[curIndex++] = p_startIndex;
+                    triangles[curIndex++] = i + 1;
+                    triangles[curIndex++] = i;
+                }
+
+                triangles[curIndex++] = p_startIndex;
+                triangles[curIndex++] = p_startIndex + 1;
+                triangles[curIndex++] = p_startIndex + circleSideCount;
             }
 
             //应用侧面的三角面顶点的索引
@@ -460,7 +501,7 @@ namespace SimpleCore.ShapeMeshes
         }
 
         /// <summary>
-        ///     获得圆柱体图形单面mesh的uv数组。
+        ///     获得圆锥台单面的UV数组。
         /// </summary>
         /// <param name="arrayLen"></param>
         /// <param name="circleSideCount"></param>
@@ -511,7 +552,7 @@ namespace SimpleCore.ShapeMeshes
         }
 
         /// <summary>
-        ///     获得圆柱体图形双面mesh的uv数组。
+        ///     获得圆锥台双面的uv数组。
         /// </summary>
         /// <param name="arrayLen"></param>
         /// <param name="circleSideCount"></param>
