@@ -206,6 +206,16 @@ namespace SimpleCore.UndoRedoes
         }
 
         /// <summary>
+        ///     可以撤销的记录数。
+        /// </summary>
+        /// <param name="containerKey"></param>
+        /// <returns></returns>
+        public int GetUndoCount(int? containerKey = null)
+        {
+            return GetContainer(containerKey).UndoCount;
+        }
+
+        /// <summary>
         ///     是否可以执行还原。
         /// </summary>
         /// <param name="containerKey"></param>
@@ -213,6 +223,16 @@ namespace SimpleCore.UndoRedoes
         public bool CanRedo(int? containerKey = null)
         {
             return GetContainer(containerKey).CanRedo;
+        }
+
+        /// <summary>
+        ///     可以还原的记录数。
+        /// </summary>
+        /// <param name="containerKey"></param>
+        /// <returns></returns>
+        public int GetRedoCount(int? containerKey = null)
+        {
+            return GetContainer(containerKey).RedoCount;
         }
 
         /// <summary>

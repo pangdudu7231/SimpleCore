@@ -26,9 +26,19 @@ namespace SimpleCore.UndoRedoes
         public bool CanUndo => _stackPointer >= 0;
 
         /// <summary>
+        ///     可以撤销的记录数
+        /// </summary>
+        public int UndoCount => _stackPointer + 1;
+
+        /// <summary>
         ///     可以执行还原操作
         /// </summary>
         public bool CanRedo => _stack.Count > 0 && _stackPointer < _stack.Count - 1;
+
+        /// <summary>
+        ///     可以还原的记录数
+        /// </summary>
+        public int RedoCount => _stack.Count - _stackPointer - 1;
 
         /// <summary>
         ///     撤销还原是否启用
